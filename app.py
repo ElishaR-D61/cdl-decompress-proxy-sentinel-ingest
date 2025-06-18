@@ -24,7 +24,7 @@ if (WORKSPACE_ID is None or SHARED_KEY is None):
 
 
 BASIC_AUTH = base64.b64encode("{}:{}".format(WORKSPACE_ID, SHARED_KEY).encode()).decode("utf-8")
-LOG_TYPE = 'Log-Type'
+LOG_TYPE = 'PaloAlto_StrataLoggingService' #Will create a log table in Log Analytics with this name
 HTTPS = 'https://'
 AZURE_URL = '.ods.opinsights.azure.com'
 AZURE_API_VERSION = '?api-version=2016-04-01'
@@ -57,7 +57,7 @@ def build_signature(customer_id, shared_key, date, content_length, method, conte
     authorization = "SharedKey {}:{}".format(customer_id,encoded_hash)
     return authorization
 
-
+# This method calls the Log Analytics API
 def post(headers, body, isAuth):
     auth_string = ' auth ' if isAuth else ' '
     response = POOL.post(URI, data=body, headers=headers)
@@ -70,7 +70,7 @@ def post(headers, body, isAuth):
         raise ProcessingException("ProcessingException for{}: {}".format(auth_string, failure_resp)) 
 
 
-# Build Auth and send request to the POST API
+# This method creates the Authorisation header and calls the Log Analytics API
 def post_data(customer_id, shared_key, body, log_type, length=0):
     rfc1123date = datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
     signature = build_signature(customer_id, shared_key, rfc1123date, length, POST_METHOD, CONTENT_TYPE, RESOURCE)
@@ -82,7 +82,7 @@ def post_data(customer_id, shared_key, body, log_type, length=0):
     }
     post(headers, body, False)
 
-
+# This method uses the Authorisation header from the original incoming PaloAlto API
 # Use Auth and send request to the POST API
 def post_data_auth(headers, body):
     post(headers, body, True)
@@ -105,8 +105,20 @@ def func():
                 shared_key_header = auth.strip()
         if basic_auth_header == '':
             logging.error("UnAuthorized Basic header")
-            raise UnAuthorizedException()   
-        log_type = request.headers.get(LOG_TYPE)
+            raise UnAuthorizedException()  
+       # This checks to see if the header Log-Type is present and adds 
+        # the name for the Log Analytics table that the logs will be sent to
+        if request.headers.get(LOG_TYPE) is None:
+            app.logger.debug("Log-Type header is missing")
+            log_type = 'PaloAlto_StrataLoggingService' #rename this to rename the table the logs send to
+        else:
+            log_type = request.headers.get(LOG_TYPE)
+        # This checks to see if the header x-ms-date is present
+        # Strata Cloud Manager does not send this header anymore it seems
+        if request.headers.get('x-ms-date') is None:
+            app.logger.debug("x-ms-date header is missing")
+            xms_date = ''
+        else:
         xms_date = ", ".join([each.strip() for each in request.headers.get('x-ms-date').split(",")]).replace("UTC", "GMT")
         headers = {
              'Content-Type': 'application/json; charset=UTF-8',
@@ -114,7 +126,14 @@ def func():
              'Log-Type': log_type,
              'x-ms-date': xms_date        
         }
-        logging.debug(headers)
+        app.logging.debug(headers)
+
+        all_headers = request.headers
+
+        # convert all_headers to json
+        all_headers = json.dumps(dict(all_headers))
+        app.logger.debug(all_headers)
+        
         # Decompress payload
         decompressed = gzip.decompress(body)
         logging.debug(decompressed)  
