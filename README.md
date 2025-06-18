@@ -1,7 +1,7 @@
 # Proxy template to decompress data from CDL for ingestion into Azure Sentinel
 
 ## About
-This application leverages the Azure HTTP Data Collector API (depreciated) to send log data to Azure Monitor from a REST API client. This API has been depreciated and will no longer be functional as of 9/14/2026.  
+This application leverages the Azure HTTP Data Collector API (depreciated) to send log data to Azure Monitor from a REST API client. This API and Web Application has been depreciated and will no longer be functional as of 9/14/2026.  
 [Send log data to Azure Monitor by using the HTTP Data Collector API | Microsoft Learn](https://learn.microsoft.com/en-us/previous-versions/azure/azure-monitor/logs/data-collector-api?tabs=python)
 
 
