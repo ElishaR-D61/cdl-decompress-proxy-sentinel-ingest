@@ -32,7 +32,7 @@ https://docs.microsoft.com/en-us/azure/app-service/overview-managed-identity?tab
 
 1. Install Visual Studio Code Version >= 1.64.1  
 2. Install Extensions Azure Tools, Azure App Service in Visual Studio Code  
-3. git clone https://github.com/PaloAltoNetworks/cdl-decompress-proxy-sentinel-ingest.git  
+3. git clone https://github.com/ElishaR-D61/cdl-decompress-proxy-sentinel-ingest 
 4. Open the folder cdl-decompress-proxy-sentinel-ingest in Visual Studio Code  
 5. Click the Azure Icon, Sign Into Azure -> `Create new Web App`  
 6. Right Click the Web App created and chose `Deploy to Web App`
